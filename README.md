@@ -1,4 +1,5 @@
-# Netflix Behavior
+# Netflix Streaming Behavior
+
 A lightweight app to analyze netflix viewing behavior for all users in an account. Run it in realtime: [https://netflix-stats.streamlit.app/](https://netflix-stats.streamlit.app/)
 
 # About

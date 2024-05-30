@@ -53,6 +53,15 @@ def plot_monthly_comparison(df):
 # Streamlit app
 def main():
     st.title('Netflix Streaming Behavior')
+
+    st.markdown("""
+                **To see your own data follow these steps:**
+
+                1. Download your own Netflix data from https://www.netflix.com/account/getmyinfo. 
+                >*You have to request your dataset, confirm it via email and then ~1 day later you can download it from that site.*
+
+                2. Unpack the zip file and find the ViewingActivity.csv under the CONTENT_INTERACTION folder.
+                3. Upload the ViewingActivity.csv file into the app and you'll have all users visualized from your account.""")
     
     # Data upload
     uploaded_file = st.file_uploader('Upload your CSV file', type='csv')
