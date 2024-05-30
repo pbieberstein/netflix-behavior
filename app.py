@@ -15,6 +15,12 @@ def duration_to_seconds(duration):
     h, m, s = map(int, duration.split(':'))
     return h * 3600 + m * 60 + s
 
+# Function to extract the hour from datetime
+def extract_hour(time_str):
+    date, time = str(time_str).split(' ')
+    h, m, s = map(int, time.split(':'))
+    return h
+
 # Function to load and preprocess the data
 def load_data(file):
     df = pd.read_csv(file)
@@ -22,6 +28,7 @@ def load_data(file):
     df['Duration (s)'] = df['Duration'].apply(duration_to_seconds)
     df['Month-Year'] = df['Start Time'].dt.to_period('M').astype(str)
     df['Week'] = df['Start Time'].dt.to_period('W').astype(str)
+    df['Hour'] = df['Start Time'].apply(extract_hour)
     df['Weekday'] = df['Start Time'].dt.day_name()
     return df
 
@@ -37,7 +44,7 @@ def plot_total_hours_per_week(df, user):
     fig = px.bar(weekly_data, x=weekly_data.index, y=weekly_data.values, labels={'x': 'Week', 'y': 'Hours'}, title=f'Total Hours Watched per Week by {user}')
     st.plotly_chart(fig)
 
-# Function to plot average hours watched per weekday
+# Function to plot percent of hours watched per weekday
 def plot_average_hours_per_weekday(df, user):
     weekday_data_hours_weekday = df[df['Profile Name'] == user].groupby('Weekday')['Duration (s)'].sum() / 3600
     total_hours_watched = weekday_data_hours_weekday.sum()
@@ -46,6 +53,16 @@ def plot_average_hours_per_weekday(df, user):
     fig = px.bar(weekday_data_fraction, x=weekday_data_fraction.index, y=weekday_data_fraction.values, labels={'x': 'Weekday', 'y': '% of hours Watched'},
                 title=f'Percent of Hours Watched per Weekday by {user}', 
                 category_orders={'Weekday': weekday_order})
+    st.plotly_chart(fig)
+
+# Function to plot percent of hours watched per Day Hour
+def plot_average_hours_per_timeofday(df, user):
+    hourly_data = df[df['Profile Name'] == user].groupby('Hour')['Duration (s)'].sum() / 3600
+    total_hours_watched = hourly_data.sum()
+    # Calculate the fraction of hours watched per weekday as a percentage of the total hours
+    hour_data_fraction = (hourly_data / total_hours_watched * 100).round(2)
+    fig = px.bar(hour_data_fraction, x=hour_data_fraction.index, y=hour_data_fraction.values, labels={'x': 'Time of Day', 'y': '% of hours Watched'},
+                title=f'Percent of Hours Watched per Time of Day by {user}')
     st.plotly_chart(fig)
 
 # Function to plot total monthly hours watched for all users
@@ -96,6 +113,7 @@ def main():
             plot_total_hours_per_month(df, user)
             plot_total_hours_per_week(df, user)
             plot_average_hours_per_weekday(df, user)
+            plot_average_hours_per_timeofday(df, user)
         
         st.write('## Monthly Hours Watched Comparison')
         plot_monthly_comparison(df)
