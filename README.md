@@ -1,5 +1,5 @@
 # Netflix Behavior
-A lightweight app to analyze netflix viewing behavior for all users in an account
+A lightweight app to analyze netflix viewing behavior for all users in an account. Run it in realtime: [https://netflix-stats.streamlit.app/](https://netflix-stats.streamlit.app/)
 
 # About
 
@@ -18,4 +18,4 @@ To see your own data follow these steps:
 
 Explore your data! 
 
->NOTE: Don't worry I do not save your data anywhere (look at the source code [here](https://github.com/pbieberstein/netflix-behavior). It will disappear as soon as you close the app.
+>NOTE: Don't worry I do not save your data anywhere (look at the source code [here](https://github.com/pbieberstein/netflix-behavior). It will disappear as soon as you close the app. 
