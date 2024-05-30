@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from datetime import datetime
+
+# Lightweight Streamlit app to analyzez netflix streaming behavior
+
+# Function to convert duration string to total seconds
+def duration_to_seconds(duration):
+    h, m, s = map(int, duration.split(':'))
+    return h * 3600 + m * 60 + s
+
+# Function to load and preprocess the data
+def load_data(file):
+    df = pd.read_csv(file)
+    df['Start Time'] = pd.to_datetime(df['Start Time'])
+    df['Duration (s)'] = df['Duration'].apply(duration_to_seconds)
+    df['Month-Year'] = df['Start Time'].dt.to_period('M').astype(str)
+    df['Week'] = df['Start Time'].dt.to_period('W').astype(str)
+    df['Weekday'] = df['Start Time'].dt.day_name()
+    return df
+
+# Function to plot total hours watched per month
+def plot_total_hours_per_month(df, user):
+    monthly_data = df[df['Profile Name'] == user].groupby('Month-Year')['Duration (s)'].sum() / 3600
+    fig = px.bar(monthly_data, x=monthly_data.index, y=monthly_data.values, labels={'x': 'Month-Year', 'y': 'Hours'}, title=f'Total Hours Watched per Month by {user}')
+    st.plotly_chart(fig)
+
+# Function to plot total hours watched per week
+def plot_total_hours_per_week(df, user):
+    weekly_data = df[df['Profile Name'] == user].groupby('Week')['Duration (s)'].sum() / 3600
+    fig = px.bar(weekly_data, x=weekly_data.index, y=weekly_data.values, labels={'x': 'Week', 'y': 'Hours'}, title=f'Total Hours Watched per Week by {user}')
+    st.plotly_chart(fig)
+
+# Function to plot average hours watched per weekday
+def plot_average_hours_per_weekday(df, user):
+    weekday_data = df[df['Profile Name'] == user].groupby('Weekday')['Duration (s)'].mean() / 3600
+    fig = px.bar(weekday_data, x=weekday_data.index, y=weekday_data.values, labels={'x': 'Weekday', 'y': 'Average Hours'}, title=f'Average Hours Watched per Weekday by {user}')
+    st.plotly_chart(fig)
+
+# Function to plot total monthly hours watched for all users
+def plot_monthly_comparison(df):
+    monthly_comparison = df.groupby(['Month-Year', 'Profile Name'])['Duration (s)'].sum().unstack().fillna(0) / 3600
+    fig = go.Figure()
+    for user in monthly_comparison.columns:
+        fig.add_trace(go.Scatter(x=monthly_comparison.index, y=monthly_comparison[user], mode='lines+markers', name=user))
+    fig.update_layout(title='Monthly Hours Watched Comparison', xaxis_title='Month-Year', yaxis_title='Hours')
+    st.plotly_chart(fig)
+
+
+# Streamlit app
+def main():
+    st.title('Netflix Streaming Behavior')
+    
+    # Data upload
+    uploaded_file = st.file_uploader('Upload your CSV file', type='csv')
+
+    # Use Uploaded data
+    if uploaded_file is not None:
+        df = load_data(uploaded_file)
+    # Load example data if user clicks button
+    else:
+        if st.button('Load Example Data'):
+            df = load_data("example_data/ViewingActivity.csv")
+            st.success('Example data loaded!')
+        else:
+            df = None
+    
+    # Show plots once data is loaded
+    if df is not None:    
+        users = df['Profile Name'].unique()
+        st.write('### Data Preview')
+        st.dataframe(df.head())
+        
+        for user in users:
+            st.write(f'## Analysis for {user}')
+            plot_total_hours_per_month(df, user)
+            plot_total_hours_per_week(df, user)
+            plot_average_hours_per_weekday(df, user)
+        
+        st.write('## Monthly Hours Watched Comparison')
+        plot_monthly_comparison(df)
+
+if __name__ == '__main__':
+    main()
