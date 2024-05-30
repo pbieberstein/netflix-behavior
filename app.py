@@ -7,6 +7,9 @@ from datetime import datetime
 
 # Lightweight Streamlit app to analyzez netflix streaming behavior
 
+weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+
 # Function to convert duration string to total seconds
 def duration_to_seconds(duration):
     h, m, s = map(int, duration.split(':'))
@@ -36,8 +39,13 @@ def plot_total_hours_per_week(df, user):
 
 # Function to plot average hours watched per weekday
 def plot_average_hours_per_weekday(df, user):
-    weekday_data = df[df['Profile Name'] == user].groupby('Weekday')['Duration (s)'].mean() / 3600
-    fig = px.bar(weekday_data, x=weekday_data.index, y=weekday_data.values, labels={'x': 'Weekday', 'y': 'Average Hours'}, title=f'Average Hours Watched per Weekday by {user}')
+    weekday_data_hours_weekday = df[df['Profile Name'] == user].groupby('Weekday')['Duration (s)'].sum() / 3600
+    total_hours_watched = weekday_data_hours_weekday.sum()
+    # Calculate the fraction of hours watched per weekday as a percentage of the total hours
+    weekday_data_fraction = (weekday_data_hours_weekday / total_hours_watched * 100).round(2)
+    fig = px.bar(weekday_data_fraction, x=weekday_data_fraction.index, y=weekday_data_fraction.values, labels={'x': 'Weekday', 'y': '% of hours Watched'},
+                title=f'Percent of Hours Watched per Weekday by {user}', 
+                category_orders={'Weekday': weekday_order})
     st.plotly_chart(fig)
 
 # Function to plot total monthly hours watched for all users
